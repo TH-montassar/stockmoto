@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KS-GES-stock</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+  <!-- L'écran de connexion sera chargé ici -->
+  <div id="app-login"></div>
+
+  <div class="app" id="main-app" style="display:none;">
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-title">🏍️ KS-GES-stock</div>
+        <div class="logo-sub">إدارة قطع الغيار</div>
+        <div id="user-role-badge"
+          style="margin-top:8px; font-size:10px; font-weight:700; text-transform:uppercase; padding:2px 8px; border-radius:4px; display:inline-block;">
+        </div>
+        <div class="data-path" id="data-path-label" onclick="openFolder()" title="Cliquer pour ouvrir le dossier">📁 ...
+        </div>
+      </div>
+      <nav class="nav">
+        <div class="nav-section"><span class="lang-fr-only">Principal</span><span class="lang-ar-only">الرئيسية</span>
+        </div>
+        <button class="nav-item active" onclick="showPage('dashboard',this)"><span class="icon">📊</span><span
+            class="lang-fr-only">Tableau de bord</span><span class="lang-ar-only">لوحة القيادة</span></button>
+        <button class="nav-item" onclick="showPage('produits',this)"><span class="icon">📦</span><span
+            class="lang-fr-only">Produits / Pièces</span><span class="lang-ar-only">المنتجات / قطع
+            الغيار</span></button>
+        <button class="nav-item" onclick="showPage('mouvements',this)"><span class="icon">🔄</span><span
+            class="lang-fr-only">Mouvements</span><span class="lang-ar-only">حركات المخزون</span></button>
+        <button class="nav-item" onclick="showPage('alertes',this)"><span class="icon">⚠️</span><span
+            class="lang-fr-only">Alertes Stock</span><span class="lang-ar-only">تنبيهات المخزون</span></button>
+        <div class="nav-section"><span class="lang-fr-only">Véhicules</span><span class="lang-ar-only">المركبات</span>
+        </div>
+        <button class="nav-item" onclick="showPage('vehicules',this)"><span class="icon">🏍️</span><span
+            class="lang-fr-only">Véhicules</span><span class="lang-ar-only">المركبات</span></button>
+        <div class="nav-section"><span class="lang-fr-only">Données</span><span class="lang-ar-only">البيانات</span>
+        </div>
+        <button class="nav-item" onclick="showPage('marques',this)"><span class="icon">🏷️</span><span
+            class="lang-fr-only">Marques</span><span class="lang-ar-only">الماركات</span></button>
+        <button class="nav-item" onclick="showPage('categories',this)"><span class="icon">🏷️</span><span
+            class="lang-fr-only">Catégories</span><span class="lang-ar-only">الفئات</span></button>
+        <button class="nav-item" onclick="showPage('export',this)"><span class="icon">💾</span><span
+            class="lang-fr-only">Export / Import</span><span class="lang-ar-only">تصدير / استيراد</span></button>
+      </nav>
+      <div class="save-status">
+        <div class="save-dot" id="save-dot"></div>
+        <span id="save-label" style="color:var(--text2)"><span class="lang-fr-only">Données sauvegardées</span><span
+            class="lang-ar-only">تم الحفظ</span></span>
+      </div>
+      <div class="save-status" style="margin-top:5px; padding-top:5px; border-top:1px solid rgba(255,255,255,0.05)">
+        <div style="width:8px;height:8px;border-radius:50%;background:#7f8c8d;margin-right:8px"
+          id="sync-status-sidebar-dot"></div>
+        <span style="color:var(--text2); font-size:11px" id="sync-status-sidebar-label">Cloud Sync: ---</span>
+      </div>
+    </aside>
+
+    <main class="main" id="main">
+      <div class="header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-ghost" onclick="toggleSidebar()" style="padding:6px 9px;font-size:15px">☰</button>
+          <div class="header-title" id="page-title"><span class="lang-fr-only">Tableau de bord</span><span
+              class="lang-ar-only">لوحة القيادة</span></div>
+        </div>
+        <div class="header-right">
+          <div id="sync-status-dot" title="Statut de synchronisation Neon"
+            style="width:10px;height:10px;border-radius:50%;background:#7f8c8d;margin-inline-end:8px"></div>
+          <span id="alert-badge" class="badge-alert" style="display:none">0 alertes</span>
+
+          <button class="btn btn-primary" onclick="openAddProduct()" style="margin-inline-end:8px"><span
+              class="lang-fr-only">+ Nouveau produit</span><span class="lang-ar-only">+ منتج جديد</span></button>
+
+          <div class="dropdown">
+            <button class="btn btn-ghost" onclick="toggleHeaderMenu(event)" id="btn-header-menu"
+              style="padding:6px 9px;font-size:18px" title="Paramètres">⋮</button>
+            <div id="header-menu" class="dropdown-content">
+              <div class="dropdown-item" onclick="openChangePassword()" id="menu-item-password">
+                <span class="icon">🔐</span>
+                <span class="lang-fr-only">Mot de passe</span><span class="lang-ar-only">كلمة المرور</span>
+              </div>
+              <div class="dropdown-item" onclick="openAdminManager()" id="menu-item-admins" style="display:none">
+                <span class="icon">👥</span>
+                <span class="lang-fr-only">Gérer les Admins</span><span class="lang-ar-only">إدارة المستخدمين</span>
+              </div>
+              <div class="dropdown-item" onclick="toggleTheme()">
+                <span class="icon" id="menu-theme-icon">☀️</span>
+                <span class="lang-fr-only">Changer Thème</span><span class="lang-ar-only">تغيير المظهر</span>
+              </div>
+              <div class="dropdown-item" onclick="toggleLanguage()">
+                <span class="icon">🌐</span>
+                <span class="lang-fr-only">Changer Langue</span><span class="lang-ar-only">تغيير اللغة</span>
+              </div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" onclick="logout()" style="color:var(--red)">
+                <span class="icon">🚪</span>
+                <span class="lang-fr-only">Déconnexion</span><span class="lang-ar-only">تسجيل الخروج</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="content" id="app-content"></div>
+    </main>
+  </div>
+
+  <div id="app-modals"></div>
+
+  <script src="shared/i18n.js"></script>
+  <script src="shared/data.js"></script>
+  <script src="shared/utils.js"></script>
+  <script src="components/dashboard.js"></script>
+  <script src="components/produits.js"></script>
+  <script src="components/mouvements.js"></script>
+  <script src="components/alertes.js"></script>
+  <script src="components/categories.js"></script>
+  <script src="components/export.js"></script>
+  <script src="components/invoice.js"></script>
+  <script src="components/marques.js"></script>
+  <script src="components/vehicules.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>

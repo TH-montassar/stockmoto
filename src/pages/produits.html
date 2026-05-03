@@ -1,0 +1,33 @@
+<div class="page" id="page-produits">
+  <div class="search-bar">
+    <input class="search-input" type="text" id="search-produit" placeholder="🔍 Rechercher / بحث..." oninput="renderProduits()">
+    <select id="filter-cat" onchange="renderProduits()" style="width:155px"><option value="">Toutes catégories</option></select>
+    <select id="filter-marque" onchange="renderProduits()" style="width:140px"><option value="">Toutes marques</option></select>
+    <select id="filter-emplacement" onchange="renderProduits()" style="width:110px"><option value="">Tous empl.</option></select>
+    <select id="sort-produit" onchange="renderProduits()" style="width:140px">
+      <option value="nom-asc">Nom (A-Z) / الاسم</option>
+      <option value="nom-desc">Nom (Z-A) / الاسم</option>
+      <option value="qty-asc">Qté ↗ / كمية</option>
+      <option value="qty-desc">Qté ↘ / كمية</option>
+      <option value="price-asc">Prix ↗ / السعر</option>
+      <option value="price-desc">Prix ↘ / السعر</option>
+      <option value="recent">Récents / الأحدث</option>
+    </select>
+    <button class="btn btn-primary" onclick="openAddProduct()"><span class="lang-fr-only">+ Ajouter</span><span class="lang-ar-only">+ إضافة</span></button>
+  </div>
+  <div class="card">
+    <table><thead><tr>
+      <th><span class="lang-fr-only">Réf.</span><span class="lang-ar-only">رمز</span></th>
+      <th><span class="lang-fr-only">Désignation</span><span class="lang-ar-only">الاسم</span></th>
+      <th><span class="lang-fr-only">Catégorie</span><span class="lang-ar-only">الفئة</span></th>
+      <th><span class="lang-fr-only">Sous-cat.</span><span class="lang-ar-only">الفئة الفرعية</span></th>
+      <th><span class="lang-fr-only">Marque</span><span class="lang-ar-only">العلامة</span></th>
+      <th><span class="lang-fr-only">📍 Empl.</span><span class="lang-ar-only">📍 الموضع</span></th>
+      <th><span class="lang-fr-only">Qté</span><span class="lang-ar-only">كمية</span></th>
+      <th><span class="lang-fr-only">P.Achat</span><span class="lang-ar-only">س.شراء</span></th>
+      <th><span class="lang-fr-only">P.Vente</span><span class="lang-ar-only">س.بيع</span></th>
+      <th><span class="lang-fr-only">Actions</span><span class="lang-ar-only">إجراءات</span></th>
+    </tr></thead>
+    <tbody id="produits-table"></tbody></table>
+  </div>
+</div>

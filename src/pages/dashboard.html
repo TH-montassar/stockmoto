@@ -1,0 +1,85 @@
+<div class="page active" id="page-dashboard">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+    <div style="display:flex;gap:10px;align-items:baseline">
+      <h2 style="margin:0"><span class="lang-fr-only">Statistiques</span><span class="lang-ar-only">الإحصائيات</span></h2>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <span style="font-size:12px;color:var(--text2)"><span class="lang-fr-only">Grouper par :</span><span class="lang-ar-only">تجميع حسب:</span></span>
+      <select id="stat-group-by" onchange="renderCharts()" style="background:var(--bg2);color:var(--text1);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;">
+        <option value="cat">📁 Catégorie</option>
+        <option value="marque">🏷️ Marque</option>
+      </select>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card orange"><div class="stat-label"><span class="lang-fr-only">Total produits</span><span class="lang-ar-only">إجمالي المنتجات</span></div><div class="stat-num" id="stat-total">0</div><div class="stat-sub"><span class="lang-fr-only">références en stock</span><span class="lang-ar-only">مرجع في المخزن</span></div></div>
+    <div class="stat-card green"><div class="stat-label"><span class="lang-fr-only">Valeur du stock</span><span class="lang-ar-only">قيمة المخزن</span></div><div class="stat-num" id="stat-valeur">0 DT</div><div class="stat-sub"><span class="lang-fr-only">prix d'achat total</span><span class="lang-ar-only">إجمالي سعر الشراء</span></div></div>
+    <div class="stat-card red"><div class="stat-label">⚠️ <span class="lang-fr-only">Stock faible</span><span class="lang-ar-only">مخزون منخفض</span></div><div class="stat-num" id="stat-alerte">0</div><div class="stat-sub"><span class="lang-fr-only">à réapprovisionner</span><span class="lang-ar-only">يحتاج إلى تجديد</span></div></div>
+    <div class="stat-card blue"><div class="stat-label"><span class="lang-fr-only">Mouvements aujourd'hui</span><span class="lang-ar-only">حركات اليوم</span></div><div class="stat-num" id="stat-mvt">0</div><div class="stat-sub"><span class="lang-fr-only">entrées + sorties</span><span class="lang-ar-only">مدخلات + مخرجات</span></div></div>
+  </div>
+  <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px">
+    <div class="stat-card orange"><div class="stat-label">🏆 <span class="lang-fr-only">Produit le + vendu</span><span class="lang-ar-only">الأكثر مبيعاً</span></div><div class="stat-num" style="font-size:16px" id="stat-top-prod">—</div><div class="stat-sub" id="stat-top-prod-qty"></div></div>
+    <div class="stat-card red"><div class="stat-label">📉 <span class="lang-fr-only">Produit le - vendu</span><span class="lang-ar-only">الأقل مبيعاً</span></div><div class="stat-num" style="font-size:16px" id="stat-low-prod">—</div><div class="stat-sub" id="stat-low-prod-qty"></div></div>
+    <div class="stat-card green"><div class="stat-label">📊 <span class="lang-fr-only">Meilleure catégorie</span><span class="lang-ar-only">أفضل فئة</span></div><div class="stat-num" style="font-size:16px" id="stat-best-cat">—</div><div class="stat-sub" id="stat-best-cat-qty"></div></div>
+  </div>
+
+  <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
+    <div class="stat-card red"><div class="stat-label">🧾 <span class="lang-fr-only">Total Crédit Client</span><span class="lang-ar-only">إجمالي ديون العملاء</span></div><div class="stat-num" style="font-size:16px" id="stat-total-credit">0 DT</div><div class="stat-sub"><span class="lang-fr-only">Produits + Véhicules</span><span class="lang-ar-only">منتجات + مركبات</span></div></div>
+    <div class="stat-card green"><div class="stat-label">📦 <span class="lang-fr-only">Bénéfice Produits (30j)</span><span class="lang-ar-only">أرباح المنتجات (30 يوم)</span></div><div class="stat-num" style="font-size:16px" id="stat-profit-prod-30">0 DT</div><div class="stat-sub" id="stat-profit-prod-30-sub">Dernier mois</div></div>
+    <div class="stat-card blue"><div class="stat-label">🏍️ <span class="lang-fr-only">Bénéfice Véhicules (30j)</span><span class="lang-ar-only">أرباح المركبات (30 يوم)</span></div><div class="stat-num" style="font-size:16px" id="stat-profit-veh-30">0 DT</div><div class="stat-sub" id="stat-profit-veh-30-sub">Dernier mois</div></div>
+    <div class="stat-card orange"><div class="stat-label">🏆 <span class="lang-fr-only">Bénéfice Total (30j)</span><span class="lang-ar-only">إجمالي الأرباح (30 يوم)</span></div><div class="stat-num" style="font-size:16px" id="stat-profit-30">0 DT</div><div class="stat-sub" id="stat-profit-30-sub">Dernier mois</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+    <div class="card" style="padding:18px">
+      <div class="card-title" style="margin-bottom:14px;font-size:14px;font-weight:600">📊 <span class="lang-fr-only">Quantité de stock par catégorie</span><span class="lang-ar-only">كمية المخزون حسب الفئة</span></div>
+      <div style="height:220px"><canvas id="chart-valeur"></canvas></div>
+    </div>
+    <div class="card" style="padding:18px">
+      <div class="card-title" style="margin-bottom:14px;font-size:14px;font-weight:600">💪 <span class="lang-fr-only">Ventes par catégorie</span><span class="lang-ar-only">المبيعات حسب الفئة</span></div>
+      <div style="height:220px"><canvas id="chart-qty"></canvas></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+    <div class="card" style="padding:18px">
+      <div class="card-title" style="margin-bottom:14px;font-size:14px;font-weight:600">💰 <span class="lang-fr-only">Valeur d'achat par catégorie (DT)</span><span class="lang-ar-only">قيمة الشراء حسب الفئة</span></div>
+      <div style="height:220px"><canvas id="chart-achat"></canvas></div>
+    </div>
+    <div class="card" style="padding:18px">
+      <div class="card-title" style="margin-bottom:14px;font-size:14px;font-weight:600">🏷️ <span class="lang-fr-only">Stock par Marque</span><span class="lang-ar-only">المخزون حسب الماركة</span></div>
+      <div style="height:220px"><canvas id="chart-marque"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="card-title">📦 <span class="lang-fr-only">Stock récent</span><span class="lang-ar-only">آخر المنتجات</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="showAllProducts()">
+        <span class="lang-fr-only">Voir tout →</span><span class="lang-ar-only">عرض الكل ←</span>
+      </button>
+    </div>
+    <table><thead><tr>
+      <th><span class="lang-fr-only">Référence</span><span class="lang-ar-only">الرمز</span></th>
+      <th><span class="lang-fr-only">Désignation</span><span class="lang-ar-only">الاسم</span></th>
+      <th><span class="lang-fr-only">Catégorie</span><span class="lang-ar-only">الفئة</span></th>
+      <th><span class="lang-fr-only">Marque</span><span class="lang-ar-only">العلامة</span></th>
+      <th><span class="lang-fr-only">Qté</span><span class="lang-ar-only">الكمية</span></th>
+      <th><span class="lang-fr-only">P.Achat</span><span class="lang-ar-only">س.الشراء</span></th>
+      <th><span class="lang-fr-only">P.Vente</span><span class="lang-ar-only">س.البيع</span></th>
+      <th><span class="lang-fr-only">Statut</span><span class="lang-ar-only">الحالة</span></th>
+    </tr></thead>
+    <tbody id="dashboard-table"><tr><td colspan="8" class="empty"><div class="empty-icon">📭</div><span class="lang-fr-only">Aucun produit.</span><span class="lang-ar-only">لا توجد منتجات.</span></td></tr></tbody></table>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <div class="card-header">
+      <div class="card-title">🧾 <span class="lang-fr-only">Crédits en cours</span><span class="lang-ar-only">الكريدت الحالي (ديون العملاء)</span></div>
+    </div>
+    <table><thead><tr>
+      <th><span class="lang-fr-only">Client</span><span class="lang-ar-only">العميل</span></th>
+      <th><span class="lang-fr-only">Reste à payer</span><span class="lang-ar-only">الباقي</span></th>
+      <th><span class="lang-fr-only">Type</span><span class="lang-ar-only">النوع</span></th>
+      <th><span class="lang-fr-only">Dernière vente</span><span class="lang-ar-only">آخر عملية</span></th>
+    </tr></thead>
+    <tbody id="credit-table"><tr><td colspan="4" class="empty"><span class="lang-fr-only">Aucun crédit.</span><span class="lang-ar-only">لا يوجد كريدت.</span></td></tr></tbody></table>
+  </div>
+</div>

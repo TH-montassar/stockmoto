@@ -1,0 +1,83 @@
+<div class="page" id="page-mouvements">
+  <div class="movement-tabs" style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <button class="tab" id="tab-sortie" onclick="setMvtType('sortie')"><span class="lang-fr-only">📤 Sortie stock (Vente)</span><span class="lang-ar-only">📤 إخراج مخزون (بيع)</span></button>
+      <button class="tab active-in" id="tab-entree" onclick="setMvtType('entree')"><span class="lang-fr-only">📥 Entrée stock (Achat)</span><span class="lang-ar-only">📥 إدخال مخزون (شراء)</span></button>
+    </div>
+    <button class="btn btn-ghost" onclick="openProductSalesHistory()"><span class="lang-fr-only">📜 Carnet de Crédits</span><span class="lang-ar-only">📜 كراسة الديون</span></button>
+  </div>
+  <div class="card" style="margin-bottom:20px;padding:18px">
+    <div style="font-size:14px;font-weight:600;margin-bottom:14px" id="mvt-form-title"><span class="lang-fr-only">📥 Enregistrer une entrée</span><span class="lang-ar-only">📥 تسجيل مدخول</span></div>
+    
+    <!-- Ligne de saisie produit -->
+    <div class="form-grid" style="align-items:end;margin-bottom:15px">
+      <div class="form-group" style="flex:2">
+        <label><span class="lang-fr-only">Produit</span><span class="lang-ar-only">المنتج</span></label>
+        <div class="custom-select-container">
+          <input type="text" id="mvt-produit-search" placeholder="Rechercher un produit... / بحث عن منتج..." oninput="filterMvtProducts()" onfocus="showMvtProducts()" autocomplete="off">
+          <input type="hidden" id="mvt-produit" onchange="autoFillPrice()">
+          <div id="mvt-produit-list" class="custom-select-list" style="display:none;"></div>
+        </div>
+      </div>
+      <div class="form-group" style="width:80px"><label><span class="lang-fr-only">Quantité</span><span class="lang-ar-only">الكمية</span></label><input type="number" id="mvt-qty" min="1" value="1"></div>
+      <div class="form-group" style="width:120px"><label><span class="lang-fr-only">Prix U (DT)</span><span class="lang-ar-only">سعر الوحدة</span></label><input type="number" id="mvt-prix" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="form-group" style="width:120px"><button class="btn btn-secondary" onclick="addToCart()" style="width:100%"><span class="lang-fr-only">➕ Ajouter</span><span class="lang-ar-only">➕ إضافة</span></button></div>
+    </div>
+
+    <!-- Table du panier -->
+    <table style="margin-bottom:15px" class="table-sm">
+      <thead><tr><th>Produit</th><th>Qté</th><th>Prix U.</th><th>Total</th><th style="width:50px"></th></tr></thead>
+      <tbody id="cart-rows"><tr><td colspan="5" style="text-align:center;color:#888;font-size:12px;padding:10px">Panier vide</td></tr></tbody>
+      <tfoot id="cart-foot" style="display:none"><tr><th colspan="3" style="text-align:right">Total TTC :</th><th id="cart-total" style="font-weight:bold;color:var(--primary)">0.00 DT</th><th></th></tr></tfoot>
+    </table>
+
+    <hr style="margin-bottom:15px;border:none;border-top:1px solid #eee">
+
+    <!-- Infos globales de la transaction -->
+    <div class="form-grid">
+      <div class="form-group"><label><span class="lang-fr-only">Fournisseur / Client</span><span class="lang-ar-only">المورد / العميل</span></label><input type="text" id="mvt-tiers" placeholder="Nom / اسم"></div>
+      
+      <div class="form-group" id="mvt-paiement-group" style="display:none;"><label><span class="lang-fr-only">Mode de paiement</span><span class="lang-ar-only">طريقة الدفع</span></label>
+        <select id="mvt-paiement" onchange="toggleMvtCreditFields()">
+          <option value="espèces"><span class="lang-fr-only">💵 Espèces</span><span class="lang-ar-only">نقداً</span></option>
+          <option value="chèque"><span class="lang-fr-only">📄 Chèque</span><span class="lang-ar-only">شيك</span></option>
+          <option value="virement"><span class="lang-fr-only">🏦 Virement</span><span class="lang-ar-only">تحويل بنكي</span></option>
+          <option value="crédit"><span class="lang-fr-only">📅 Crédit</span><span class="lang-ar-only">تقسيط</span></option>
+        </select>
+      </div>
+
+      <div class="form-group full"><label><span class="lang-fr-only">Note</span><span class="lang-ar-only">ملاحظة</span></label><input type="text" id="mvt-note" placeholder="Remarque / ملاحظة..."></div>
+    </div>
+
+    <!-- Champs de crédit pour les produits -->
+    <div id="mvt-credit-fields" class="form-group full" style="display: none; background: var(--bg3); padding: 12px; border-radius: 8px; margin-top: 14px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div><label><span class="lang-fr-only">Avance (DT)</span><span class="lang-ar-only">المقدم (DT)</span></label><input type="number" id="mvt-avance" min="0" step="0.01" placeholder="0.00" oninput="calculateMvtCreditReste()" style="width: 100%;"></div>
+        <div><label><span class="lang-fr-only">Reste (DT)</span><span class="lang-ar-only">الباقي (DT)</span></label><input type="number" id="mvt-reste" readonly style="background: var(--bg2); color: var(--accent); width: 100%;"></div>
+      </div>
+      <div><label><span class="lang-fr-only">Nombre de tranches (Mois)</span><span class="lang-ar-only">عدد الأقساط (أشهر)</span></label><input type="number" id="mvt-tranches" min="1" placeholder="ex: 12" style="width: 100%;"></div>
+    </div>
+    
+    <div style="margin-top:14px"><button class="btn btn-primary" onclick="saveTransaction()"><span class="lang-fr-only">✅ Valider l'opération</span><span class="lang-ar-only">✅ تسجيل المعاملة</span></button></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title"><span class="lang-fr-only">Historique des mouvements</span><span class="lang-ar-only">سجل الحركات</span></div></div>
+    <table><thead><tr>
+      <th><span class="lang-fr-only">Date</span><span class="lang-ar-only">التاريخ</span></th>
+      <th><span class="lang-fr-only">Type</span><span class="lang-ar-only">النوع</span></th>
+      <th><span class="lang-fr-only">Produit</span><span class="lang-ar-only">المنتج</span></th>
+      <th><span class="lang-fr-only">Qté</span><span class="lang-ar-only">كمية</span></th>
+      <th><span class="lang-fr-only">Prix</span><span class="lang-ar-only">السعر</span></th>
+      <th><span class="lang-fr-only">Tiers</span><span class="lang-ar-only">العميل/مورد</span></th>
+      <th><span class="lang-fr-only">Note</span><span class="lang-ar-only">ملاحظة</span></th>
+      <th><span class="lang-fr-only">Actions</span><span class="lang-ar-only">إجراءات</span></th>
+    </tr></thead>
+    <tbody id="mvt-table"></tbody></table>
+    <div id="mvt-more-container" style="padding: 12px; text-align: center; border-top: 1px solid var(--border); display: none;">
+      <button class="btn btn-ghost" onclick="openFullMvtHistory()">
+        <span class="lang-fr-only">📜 Voir tout l'historique</span>
+        <span class="lang-ar-only">📜 عرض السجل الكامل</span>
+      </button>
+    </div>
+  </div>
+</div>

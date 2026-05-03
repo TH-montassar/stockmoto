@@ -1,0 +1,19 @@
+<!-- ECRAN DE CONNEXION -->
+<div id="login-screen" style="position:fixed; top:0; left:0; right:0; bottom:0; background:var(--bg1); z-index:9999; display:none; flex-direction:column; justify-content:center; align-items:center; font-family:var(--font-fr), sans-serif;">
+  <div style="background:var(--bg2); padding:30px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5); width:350px; text-align:center; border:1px solid var(--border);">
+    <div style="font-size:24px; font-weight:bold; margin-bottom:8px;">🏍️ KS-GES-stock</div>
+    <div style="color:var(--text2); margin-bottom:24px;" id="login-subtitle">Connexion requise</div>
+    
+    <div style="text-align:left; margin-bottom:16px;">
+      <label style="display:block; margin-bottom:6px; font-size:13px; color:var(--text2);"><span class="lang-fr-only">Utilisateur</span><span class="lang-ar-only">المستخدم</span></label>
+      <input type="text" id="login-user" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg3); color:var(--text); font-size:16px; margin-bottom:12px;" placeholder="Ex: Ahmed" onkeyup="if(event.key==='Enter') document.getElementById('login-pwd').focus()">
+
+      <label style="display:block; margin-bottom:6px; font-size:13px; color:var(--text2);"><span class="lang-fr-only">Mot de passe</span><span class="lang-ar-only">كلمة المرور</span></label>
+      <input type="password" id="login-pwd" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg3); color:var(--text); font-size:16px;" placeholder="***" onkeyup="if(event.key==='Enter') executeLogin()">
+    </div>
+    
+    <button class="btn btn-primary" style="width:100%; padding:12px; font-size:15px;" onclick="executeLogin()" id="login-btn">
+      <span class="lang-fr-only">Se connecter</span><span class="lang-ar-only">تسجيل الدخول</span>
+    </button>
+  </div>
+</div>

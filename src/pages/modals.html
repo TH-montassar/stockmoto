@@ -1,0 +1,339 @@
+<!-- INVOICE PRINT TEMPLATE -->
+<div class="invoice-wrap" id="invoice-wrap">
+  <div class="invoice-box">
+    <div class="inv-header">
+      <div>
+        <div class="inv-logo">🏍️ كريمة الصالحي</div>
+        <div style="font-size:12px;margin-top:4px">Karima Al-Salhi — Pièces moto & vélo</div>
+      </div>
+      <div class="inv-info"><strong id="inv-num">Facture #</strong><br><span id="inv-date"></span></div>
+    </div>
+    <div class="inv-client"><strong>Client :</strong> <span id="inv-client">—</span></div>
+    <table class="inv-table">
+      <thead><tr><th>Désignation</th><th>Référence</th><th>Qté</th><th>Prix unit. (DT)</th><th>Total (DT)</th></tr></thead>
+      <tbody id="inv-rows"></tbody>
+    </table>
+    <div class="inv-total">Total TTC : <span id="inv-total">0.00 DT</span></div>
+    <div class="inv-footer">Merci de votre confiance &mdash; شكراً لثقتكم &mdash; كريمة الصالحي</div>
+  </div>
+</div>
+
+<!-- INVOICE PREVIEW MODAL -->
+<div class="modal-overlay" id="modal-invoice">
+  <div class="modal">
+    <div class="inv-preview-header">
+      <div style="font-size:15px;font-weight:700">🖨️ <span class="lang-fr-only">Aperçu de la facture</span><span class="lang-ar-only">معاينة الفاتورة</span></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="confirmPrint()">🖨️ <span class="lang-fr-only">Imprimer / PDF</span><span class="lang-ar-only">طباعة / PDF</span></button>
+        <button class="btn btn-ghost" onclick="closeInvoiceModal()"><span class="lang-fr-only">❌ Fermer</span><span class="lang-ar-only">❌ إغلاق</span></button>
+      </div>
+    </div>
+    <div class="inv-preview-body">
+      <div class="inv-paper">
+        <div class="inv-header">
+          <div><div class="inv-logo">🏍️ كريمة الصالحي</div><div style="font-size:11px;margin-top:4px;color:#777">Karima Al-Salhi — Pièces moto & vélo</div></div>
+          <div class="inv-info"><strong id="prev-num">Facture #</strong><br><span id="prev-date"></span></div>
+        </div>
+        <div class="inv-client"><strong>Client :</strong> <span id="prev-client"></span></div>
+        <table class="inv-table">
+          <thead><tr><th>Désignation</th><th>Référence</th><th>Qté</th><th>Prix unit.</th><th>Total</th></tr></thead>
+          <tbody id="prev-rows"></tbody>
+        </table>
+        <div class="inv-total">Total TTC : <span id="prev-total">0.00 DT</span></div>
+        <div class="inv-footer">Merci de votre confiance &mdash; شكراً لثقتكم &mdash; كريمة الصالحي</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRODUIT -->
+<div class="modal-overlay" id="modal-product">
+  <div class="modal" style="width:600px">
+    <div class="modal-title" id="modal-product-title">➕ Nouveau produit</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Référence</label><input type="text" id="p-ref" placeholder="ex: BOB-FOR-001"></div>
+      <div class="form-group"><label>Désignation / الاسم *</label><input type="text" id="p-nom" placeholder="ex: Bobinage Forsaa"></div>
+      <div class="form-group"><label>Catégorie</label><select id="p-cat"><option value="">-- Choisir --</option></select></div>
+      <div class="form-group"><label>Sous-catégorie / التصنيف الفرعي</label><input type="text" id="p-sous-cat" placeholder="ex: bobinage max"></div>
+      <div class="form-group"><label>Type véhicule *</label>
+        <select id="p-type"><option value="moto">🏍️ Moto</option><option value="velo">🚲 Vélo</option><option value="les deux">🏍️🚲 Les deux</option></select>
+      </div>
+      <div class="form-group">
+        <label>Marque</label>
+        <select id="p-marque" onchange="onMarqueChange()"><option value="">-- Choisir --</option></select>
+      </div>
+      <div class="form-group">
+        <label>📍 Emplacement physique</label>
+        <select id="p-emplacement"><option value="">-- Choisir --</option></select>
+      </div>
+      <div class="form-group"><label>Quantité initiale *</label><input type="number" id="p-qty" min="1" value="1"></div>
+      <div class="form-group"><label>Seuil alerte minimum</label><input type="number" id="p-alerte" min="0" value="5"></div>
+      <div class="form-group"><label>Prix achat (DT)</label><input type="number" id="p-achat" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="form-group"><label>Prix vente (DT) *</label><input type="number" id="p-vente" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="form-group full">
+        <label>Image du produit</label>
+        <input type="file" id="p-img-file" accept="image/*" onchange="previewImage(event)">
+        <input type="hidden" id="p-img-base64">
+        <img id="p-img-preview" src="" style="max-width:90px;max-height:90px;display:none;margin-top:6px;border-radius:6px;object-fit:contain;">
+      </div>
+      <div class="form-group full"><label>Description / ملاحظة</label><input type="text" id="p-desc" placeholder="Notes..."></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-product')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveProduct()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL HISTORIQUE FACTURES PRODUITS -->
+<div class="modal-overlay" id="modal-product-history">
+  <div class="modal" style="width:750px; max-height:85vh; display:flex; flex-direction:column; z-index: 90;">
+    <div class="modal-title">📜 <span class="lang-fr-only">Carnet de Crédits Clients</span><span class="lang-ar-only">كراسة الديون (العملاء)</span></div>
+    <div style="flex:1; overflow-y:auto">
+      <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border); text-align: left;">
+            <th style="padding: 8px;"><span class="lang-fr-only">Date</span><span class="lang-ar-only">التاريخ</span></th>
+            <th style="padding: 8px;"><span class="lang-fr-only">Client</span><span class="lang-ar-only">العميل</span></th>
+            <th style="padding: 8px;"><span class="lang-fr-only">Total</span><span class="lang-ar-only">الإجمالي</span></th>
+            <th style="padding: 8px;"><span class="lang-fr-only">Paiement</span><span class="lang-ar-only">الدفع</span></th>
+            <th style="padding: 8px;"></th>
+          </tr>
+        </thead>
+        <tbody id="p-history-table"></tbody>
+      </table>
+    </div>
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-product-history')"><span class="lang-fr-only">Fermer</span><span class="lang-ar-only">إغلاق</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PAIEMENTS (TRANCHES) POUR PRODUITS -->
+<div class="modal-overlay" id="modal-product-payments">
+  <div class="modal" style="width:600px; max-height:85vh; display:flex; flex-direction:column; z-index: 100;">
+    <div class="modal-title">💳 <span class="lang-fr-only">Suivi des Paiements</span><span class="lang-ar-only">تتبع الدفعات</span></div>
+    
+    <input type="hidden" id="ppay-sale-id">
+    
+    <div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px" id="ppay-info">
+      <!-- Sale info injected here -->
+    </div>
+
+    <!-- NOUVEAU PAIEMENT -->
+    <div class="form-grid" style="grid-template-columns: 1fr auto; align-items: end; background: var(--bg2); padding: 12px; border-radius: 8px; margin-bottom: 14px; border: 1px solid var(--border);">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label><span class="lang-fr-only">Montant payé (DT)</span><span class="lang-ar-only">المبلغ المدفوع (DT)</span></label>
+        <input type="number" id="ppay-amount" min="0.01" step="0.01" placeholder="0.00">
+      </div>
+      <div>
+        <button class="btn btn-primary" onclick="addProductPayment()">➕ <span class="lang-fr-only">Ajouter paiement</span><span class="lang-ar-only">إضافة دفعة</span></button>
+      </div>
+    </div>
+
+    <!-- HISTORIQUE DES PAIEMENTS -->
+    <div style="flex:1; overflow-y:auto">
+      <table style="width:100%; border-collapse: collapse;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border); text-align: left;">
+            <th style="padding: 8px;"><span class="lang-fr-only">Date</span><span class="lang-ar-only">التاريخ</span></th>
+            <th style="padding: 8px;"><span class="lang-fr-only">Montant</span><span class="lang-ar-only">المبلغ</span></th>
+          </tr>
+        </thead>
+        <tbody id="ppay-table"></tbody>
+      </table>
+    </div>
+
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-product-payments')"><span class="lang-fr-only">Fermer</span><span class="lang-ar-only">إغلاق</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CHANGEMENT DE MOT DE PASSE -->
+<div class="modal-overlay" id="modal-password">
+  <div class="modal" style="width:400px;">
+    <div class="modal-title">🔐 <span class="lang-fr-only">Changer de mot de passe</span><span class="lang-ar-only">تغيير كلمة المرور</span></div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label><span class="lang-fr-only">Ancien mot de passe</span><span class="lang-ar-only">كلمة المرور القديمة</span></label>
+        <input type="password" id="old-pwd" placeholder="***" style="width:100%">
+      </div>
+      <div class="form-group">
+        <label><span class="lang-fr-only">Nouveau mot de passe</span><span class="lang-ar-only">كلمة المرور الجديدة</span></label>
+        <input type="password" id="new-pwd" placeholder="***" style="width:100%">
+      </div>
+      <div class="form-group">
+        <label><span class="lang-fr-only">Confirmer</span><span class="lang-ar-only">تأكيد كلمة المرور</span></label>
+        <input type="password" id="confirm-pwd" placeholder="***" style="width:100%">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-password')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveNewPassword()">💾 Confirmer</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MODAL GESTION DES ADMINS (MASTER ONLY) -->
+<div class="modal-overlay" id="modal-admin-manager">
+  <div class="modal" style="width:500px; max-height:80vh; display:flex; flex-direction:column;">
+    <div class="modal-title">👥 <span class="lang-fr-only">Gestion des Administrateurs</span><span class="lang-ar-only">إدارة المستخدمين</span></div>
+    
+    <div style="margin-bottom:15px; display:flex; justify-content:flex-end">
+      <button class="btn btn-sm btn-primary" onclick="openAddAdmin()">➕ <span class="lang-fr-only">Ajouter Admin</span><span class="lang-ar-only">إضافة مسؤول</span></button>
+    </div>
+
+    <div style="flex:1; overflow-y:auto">
+      <table style="width:100%; border-collapse: collapse;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+            <th style="padding: 10px;"><span class="lang-fr-only">Nom utilisateur</span><span class="lang-ar-only">اسم المستخدم</span></th>
+            <th style="padding: 10px; text-align: right;"><span class="lang-fr-only">Actions</span><span class="lang-ar-only">إجراءات</span></th>
+          </tr>
+        </thead>
+        <tbody id="admin-list-table">
+          <!-- Rows injected here -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-admin-manager')"><span class="lang-fr-only">Fermer</span><span class="lang-ar-only">إغلاق</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RESET PASS ADMIN -->
+<div class="modal-overlay" id="modal-reset-admin-pwd">
+  <div class="modal" style="width:350px;">
+    <div class="modal-title">🔑 <span class="lang-fr-only">Nouveau mot de passe</span><span class="lang-ar-only">كلمة مرور جديدة</span></div>
+    <div class="form-group full">
+      <label><span class="lang-fr-only">Nouveau mot de passe pour </span><span id="reset-admin-name"></span></label>
+      <input type="password" id="reset-admin-pwd-input" placeholder="***" style="width:100%">
+    </div>
+    <div class="modal-actions" style="margin-top:15px">
+      <input type="hidden" id="reset-admin-id">
+      <button class="btn btn-ghost" onclick="closeModal('modal-reset-admin-pwd')">Annuler</button>
+      <button class="btn btn-primary" onclick="confirmResetAdminPassword()">💾 Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOUVEAU ADMIN -->
+<div class="modal-overlay" id="modal-add-admin">
+  <div class="modal" style="width:350px;">
+    <div class="modal-title">👤 <span class="lang-fr-only">Nouvel Administrateur</span><span class="lang-ar-only">مسؤول جديد</span></div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label><span class="lang-fr-only">Nom d'utilisateur</span><span class="lang-ar-only">اسم المستخدم</span></label>
+        <input type="text" id="add-admin-name" placeholder="Ex: Ahmed" style="width:100%">
+      </div>
+      <div class="form-group full">
+        <label><span class="lang-fr-only">Mot de passe initial</span><span class="lang-ar-only">كلمة المرور الأولية</span></label>
+        <input type="password" id="add-admin-pwd" placeholder="***" style="width:100%">
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:15px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-admin')">Annuler</button>
+      <button class="btn btn-primary" onclick="confirmAddAdmin()">💾 Créer</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL CONFLIT DE DONNÉES -->
+<div class="modal-overlay" id="modal-conflict" style="z-index: 10001;">
+  <div class="modal" style="width:500px">
+    <div class="modal-title">⚠️ <span class="lang-fr-only">Conflit de données</span><span class="lang-ar-only">تضارب في البيانات</span></div>
+    <div style="margin-bottom:20px; line-height:1.5">
+      <p class="lang-fr-only">Des données différentes ont été trouvées sur cet appareil et dans le cloud. Quelle version voulez-vous conserver ?</p>
+      <p class="lang-ar-only">تم العثور على بيانات مختلفة على هذا الجهاز وفي السحابة. أي نسخة تريد الاحتفاظ بها؟</p>
+    </div>
+    
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:20px">
+      <!-- LOCAL OPTION -->
+      <div style="border:1px solid var(--border); border-radius:8px; padding:15px; cursor:pointer; transition:0.2s" onclick="resolveDataConflict('local')" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+        <h4 style="margin:0 0 10px 0">💻 <span class="lang-fr-only">Locale</span><span class="lang-ar-only">المحلية</span></h4>
+        <div id="conflict-local-info" style="font-size:12px; opacity:0.8"></div>
+        <button class="btn btn-sm btn-primary" style="width:100%; margin-top:10px"><span class="lang-fr-only">Garder locale</span><span class="lang-ar-only">احتفاظ بالمحلية</span></button>
+      </div>
+      
+      <!-- CLOUD OPTION -->
+      <div style="border:1px solid var(--border); border-radius:8px; padding:15px; cursor:pointer; transition:0.2s" onclick="resolveDataConflict('cloud')" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+        <h4 style="margin:0 0 10px 0">☁️ <span class="lang-fr-only">Cloud</span><span class="lang-ar-only">السحابية</span></h4>
+        <div id="conflict-cloud-info" style="font-size:12px; opacity:0.8"></div>
+        <button class="btn btn-sm btn-ghost" style="width:100%; margin-top:10px; border:1px solid var(--primary)"><span class="lang-fr-only">Garder Cloud</span><span class="lang-ar-only">احتفاظ بالسحابية</span></button>
+      </div>
+    </div>
+
+    <div style="font-size:11px; color:var(--red); text-align:center">
+      ⚠️ <span class="lang-fr-only">L'autre version sera définitivement écrasée.</span>
+      <span class="lang-ar-only">سيتم مسح النسخة الأخرى بشكل نهائي.</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT MOUVEMENT -->
+<div class="modal-overlay" id="modal-mvt-edit">
+  <div class="modal" style="width:450px">
+    <div class="modal-title">✏️ <span class="lang-fr-only">Modifier mouvement</span><span class="lang-ar-only">تعديل الحركة</span></div>
+    <input type="hidden" id="edit-mvt-id">
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Produit</label>
+        <input type="text" id="edit-mvt-produit" readonly style="background:var(--bg3); opacity:0.7">
+      </div>
+      <div class="form-group">
+        <label><span class="lang-fr-only">Quantité</span><span class="lang-ar-only">الكمية</span></label>
+        <input type="number" id="edit-mvt-qty" min="1">
+      </div>
+      <div class="form-group">
+        <label><span class="lang-fr-only">Prix U (DT)</span><span class="lang-ar-only">السعر</span></label>
+        <input type="number" id="edit-mvt-prix" min="0" step="0.01">
+      </div>
+      <div class="form-group full">
+        <label><span class="lang-fr-only">Client / Fournisseur</span><span class="lang-ar-only">العميل / المورد</span></label>
+        <input type="text" id="edit-mvt-tiers">
+      </div>
+      <div class="form-group full">
+        <label>Note</label>
+        <input type="text" id="edit-mvt-note">
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-mvt-edit')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveMvtEdit()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FULL MOUVEMENT HISTORY -->
+<div class="modal-overlay" id="modal-full-mvt-history">
+  <div class="modal" style="width:90%; max-width:1100px; max-height:90vh; display:flex; flex-direction:column;">
+    <div class="modal-title">📜 <span class="lang-fr-only">Historique complet des mouvements</span><span class="lang-ar-only">سجل الحركات الكامل</span></div>
+    <div style="flex:1; overflow-y:auto; scrollbar-width:thin;">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Produit</th>
+            <th>Qté</th>
+            <th>Prix</th>
+            <th>Tiers</th>
+            <th>Note</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="full-mvt-table"></tbody>
+      </table>
+    </div>
+    <div class="modal-actions" style="margin-top:15px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-full-mvt-history')">Fermer</button>
+    </div>
+  </div>
+</div>
+

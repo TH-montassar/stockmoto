@@ -1,0 +1,54 @@
+<div class="page" id="page-export">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+    <div class="card" style="padding:22px">
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px">💾 <span class="lang-fr-only">Exporter</span><span class="lang-ar-only">تصدير</span></div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:16px"><span class="lang-fr-only">Sauvegarde complète sur votre PC</span><span class="lang-ar-only">نسخة احتياطية كاملة على جهازك</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-primary" onclick="doExportJSON()">📥 <span class="lang-fr-only">Export JSON (complet)</span><span class="lang-ar-only">تصدير JSON (كامل)</span></button>
+        <button class="btn btn-ghost" onclick="doExportCSV()">📊 <span class="lang-fr-only">Export CSV (Excel)</span><span class="lang-ar-only">تصدير CSV (Excel)</span></button>
+      </div>
+    </div>
+    <div class="card" style="padding:22px">
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px">📤 <span class="lang-fr-only">Importer les données</span><span class="lang-ar-only">استيراد البيانات</span></div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:16px"><span class="lang-fr-only">Restaurez vos données depuis un fichier exporté (JSON ou CSV).</span><span class="lang-ar-only">استعادة بياناتك من ملف تم تصديره (JSON أو CSV).</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-ghost" onclick="doImportJSON()">📋 <span class="lang-fr-only">Importer JSON (Complet)</span><span class="lang-ar-only">استيراد JSON (كامل)</span></button>
+        <button class="btn btn-ghost" onclick="doImportCSV()">📊 <span class="lang-fr-only">Importer CSV (Produits seuls)</span><span class="lang-ar-only">استيراد CSV (منتجات فقط)</span></button>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--text2)">ℹ️ <span class="lang-fr-only">L'import CSV ajoute les produits. L'import JSON remplace tout.</span><span class="lang-ar-only">استيراد CSV يضيف المنتجات. استيراد JSON يستبدل كل شيء.</span></div>
+    </div>
+  </div>
+  <div class="card" style="padding:18px">
+    <div style="font-size:14px;font-weight:600;margin-bottom:10px">📁 <span class="lang-fr-only">Où sont vos données ?</span><span class="lang-ar-only">أين توجد بياناتك ؟</span></div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.8">
+      ✅ <span class="lang-fr-only">Sauvegarde automatique à chaque modification</span><span class="lang-ar-only">حفظ تلقائي عند كل تعديل</span><br>
+      ✅ <span class="lang-fr-only">Fichier réel sur votre PC</span><span class="lang-ar-only">ملف حقيقي على جهازك</span><br>
+      ✅ <span class="lang-fr-only">Backup automatique quotidien (30 derniers jours)</span><span class="lang-ar-only">نسخ احتياطي يومي (آخر 30 يوم)</span><br>
+      ✅ <span class="lang-fr-only">Transférable sur clé USB ou autre PC</span><span class="lang-ar-only">قابل للنقل على USB أو جهاز آخر</span>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="openFolder()">📂 <span class="lang-fr-only">Ouvrir le dossier données</span><span class="lang-ar-only">فتح مجلد البيانات</span></button>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--accent)" id="export-path-display"></div>
+  </div>
+  <div class="card" id="neon-sync-section" style="padding:18px; margin-top:18px; border:1px solid #3498db; display:none">
+    <div style="font-size:14px;font-weight:600;margin-bottom:10px; color:#3498db">☁️ <span class="lang-fr-only">Synchronisation Cloud (Neon PostgreSQL)</span><span class="lang-ar-only">مزامنة سحابية (Neon PostgreSQL)</span></div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">
+      <span class="lang-fr-only">Connectez votre application à une base de données Neon pour une sauvegarde sécurisée en temps réel en ligne.</span>
+      <span class="lang-ar-only">قم بتوصيل تطبيقك بقاعدة بيانات Neon للنسخ الاحتياطي الآمن في الوقت الفعلي عبر الإنترنت.</span>
+    </div>
+    <div class="form-group">
+      <label>URL de connexion Neon (Connection String)</label>
+      <div id="neon-environment" style="font-size:11px;color:var(--text2);margin-bottom:8px"></div>
+      <div style="position:relative; display:flex; align-items:center;">
+        <input type="password" id="neon-url" readonly style="width:100%; opacity:0.9; padding-right:32px;">
+        <span id="toggle-neon-url-icon" onclick="toggleNeonUrlVisibility()" style="position:absolute; right:10px; cursor:pointer; font-size:14px; user-select:none;">👁️</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-primary" onclick="testNeonConnection()">🔗 <span class="lang-fr-only">Tester & Activer</span><span class="lang-ar-only">اختبار وتفعيل</span></button>
+      <button class="btn btn-ghost" onclick="disableNeonConnection()">❌ <span class="lang-fr-only">Désactiver</span><span class="lang-ar-only">إلغاء التفعيل</span></button>
+    </div>
+    <div id="neon-status" style="margin-top:10px;font-size:12px;font-weight:bold"></div>
+  </div>
+</div>

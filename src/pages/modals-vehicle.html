@@ -1,0 +1,150 @@
+<!-- MODAL AJOUT / MODIFICATION VÉHICULE -->
+<div class="modal-overlay" id="modal-vehicle">
+  <div class="modal" style="width:580px">
+    <div class="modal-title" id="modal-vehicle-title">🏍️ <span class="lang-fr-only">Nouveau véhicule</span><span class="lang-ar-only">مركبة جديدة</span></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label><span class="lang-fr-only">Type *</span><span class="lang-ar-only">النوع *</span></label>
+        <select id="v-type">
+          <option value="moto">🏍️ Moto</option>
+          <option value="velo">🚲 Vélo</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label><span class="lang-fr-only">Statut</span><span class="lang-ar-only">الحالة</span></label>
+        <select id="v-statut">
+          <option value="disponible"><span class="lang-fr-only">Disponible</span><span class="lang-ar-only">متاح</span></option>
+          <option value="réservé"><span class="lang-fr-only">Réservé</span><span class="lang-ar-only">محجوز</span></option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label><span class="lang-fr-only">Marque *</span><span class="lang-ar-only">الماركة *</span></label>
+        <select id="v-marque">
+          <option value="">Sélectionner...</option>
+        </select>
+      </div>
+      <div class="form-group"><label><span class="lang-fr-only">Modèle *</span><span class="lang-ar-only">الموديل *</span></label><input type="text" id="v-modele" placeholder="ex: YBR 125, CB 125..."></div>
+      <div class="form-group"><label><span class="lang-fr-only">Année</span><span class="lang-ar-only">السنة</span></label><input type="number" id="v-annee" min="2000" max="2030" placeholder="2024"></div>
+      <div class="form-group"><label><span class="lang-fr-only">Couleur</span><span class="lang-ar-only">اللون</span></label><input type="text" id="v-couleur" placeholder="ex: Rouge, Noir..."></div>
+      <div class="form-group"><label><span class="lang-fr-only">N° Châssis</span><span class="lang-ar-only">رقم الهيكل</span></label><input type="text" id="v-chassis" placeholder="VIN / Numéro de série"></div>
+      <div class="form-group"><label><span class="lang-fr-only">Cylindrée (cc)</span><span class="lang-ar-only">المحرك (cc)</span></label><input type="number" id="v-cylindree" min="0" placeholder="ex: 125"></div>
+      <div class="form-group"><label><span class="lang-fr-only">Quantité en stock</span><span class="lang-ar-only">الكمية في المخزن</span></label><input type="number" id="v-qty" min="1" value="1"></div>
+      <div class="form-group"><label><span class="lang-fr-only">Prix achat (DT)</span><span class="lang-ar-only">سعر الشراء (DT)</span></label><input type="number" id="v-achat" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="form-group"><label><span class="lang-fr-only">Prix vente (DT)</span><span class="lang-ar-only">سعر البيع (DT)</span></label><input type="number" id="v-vente" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="form-group full"><label><span class="lang-fr-only">Notes</span><span class="lang-ar-only">ملاحظات</span></label><input type="text" id="v-notes" placeholder="Options, équipements..."></div>
+      <div class="form-group full">
+        <label><span class="lang-fr-only">Image</span><span class="lang-ar-only">صورة</span></label>
+        <input type="file" id="v-img-file" accept="image/*" onchange="previewVehicleImage(event)">
+        <input type="hidden" id="v-img-base64">
+        <img id="v-img-preview" src="" style="max-width:120px;max-height:90px;display:none;margin-top:6px;border-radius:6px;object-fit:contain;">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-vehicle')"><span class="lang-fr-only">Annuler</span><span class="lang-ar-only">إلغاء</span></button>
+      <button class="btn btn-primary" onclick="saveVehicle()">💾 <span class="lang-fr-only">Enregistrer</span><span class="lang-ar-only">حفظ</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VENTE VÉHICULE -->
+<div class="modal-overlay" id="modal-vehicle-sale">
+  <div class="modal" style="width:460px">
+    <div class="modal-title">💰 <span class="lang-fr-only">Vendre un véhicule</span><span class="lang-ar-only">بيع مركبة</span></div>
+    <input type="hidden" id="vsale-veh-id">
+    <div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px" id="vsale-veh-info"></div>
+    <div class="form-grid">
+      <div class="form-group full"><label><span class="lang-fr-only">Nom du client *</span><span class="lang-ar-only">اسم العميل *</span></label><input type="text" id="vsale-client" placeholder="الاسم / Nom client"></div>
+      <div class="form-group"><label><span class="lang-fr-only">Téléphone</span><span class="lang-ar-only">الهاتف</span></label><input type="text" id="vsale-tel" placeholder="ex: +216 xx xxx xxx"></div>
+      <div class="form-group"><label><span class="lang-fr-only">Quantité vendue</span><span class="lang-ar-only">الكمية المباعة</span></label><input type="number" id="vsale-qty" min="1" value="1" oninput="calculateVehicleCreditReste()"></div>
+      <div class="form-group"><label><span class="lang-fr-only">Prix vente final (DT) *</span><span class="lang-ar-only">سعر البيع النهائي (DT) *</span></label><input type="number" id="vsale-prix" min="0" step="0.01" placeholder="0.00" oninput="calculateVehicleCreditReste()"></div>
+      <div class="form-group"><label><span class="lang-fr-only">Mode de paiement</span><span class="lang-ar-only">طريقة الدفع</span></label>
+        <select id="vsale-paiement" onchange="toggleVehicleCreditFields()">
+          <option value="espèces"><span class="lang-fr-only">💵 Espèces</span><span class="lang-ar-only">نقداً</span></option>
+          <option value="chèque"><span class="lang-fr-only">📄 Chèque</span><span class="lang-ar-only">شيك</span></option>
+          <option value="virement"><span class="lang-fr-only">🏦 Virement</span><span class="lang-ar-only">تحويل بنكي</span></option>
+          <option value="crédit"><span class="lang-fr-only">📅 Crédit</span><span class="lang-ar-only">تقسيط</span></option>
+        </select>
+      </div>
+      
+      <div id="vsale-credit-fields" class="form-group full" style="display: none; background: var(--bg3); padding: 12px; border-radius: 8px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+          <div><label><span class="lang-fr-only">Avance (DT)</span><span class="lang-ar-only">المقدم (DT)</span></label><input type="number" id="vsale-avance" min="0" step="0.01" placeholder="0.00" oninput="calculateVehicleCreditReste()" style="width: 100%;"></div>
+          <div><label><span class="lang-fr-only">Reste (DT)</span><span class="lang-ar-only">الباقي (DT)</span></label><input type="number" id="vsale-reste" readonly style="background: var(--bg2); color: var(--accent); width: 100%;"></div>
+        </div>
+        <div><label><span class="lang-fr-only">Nombre de tranches (Mois)</span><span class="lang-ar-only">عدد الأقساط (أشهر)</span></label><input type="number" id="vsale-tranches" min="1" placeholder="ex: 12" style="width: 100%;"></div>
+      </div>
+
+      <div class="form-group full"><label><span class="lang-fr-only">Notes</span><span class="lang-ar-only">ملاحظات</span></label><input type="text" id="vsale-note" placeholder="Remarque / ملاحظة..."></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-vehicle-sale')"><span class="lang-fr-only">Annuler</span><span class="lang-ar-only">إلغاء</span></button>
+      <button class="btn btn-primary" onclick="confirmVehicleSale()">✅ <span class="lang-fr-only">Confirmer la vente</span><span class="lang-ar-only">تأكيد البيع</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HISTORIQUE VENTES VÉHICULES -->
+<div class="modal-overlay" id="modal-vehicle-history" style="z-index: 90;">
+  <div class="modal" style="width:750px; max-height:85vh; display:flex; flex-direction:column">
+    <div class="modal-title">📜 <span class="lang-fr-only">Historique des Ventes (Véhicules)</span><span class="lang-ar-only">سجل مبيعات المركبات</span></div>
+    <div style="flex:1; overflow-y:auto">
+      <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border); text-align: left;">
+            <th style="padding: 8px;"><span class="lang-fr-only">Date</span><span class="lang-ar-only">التاريخ</span></th>
+            <th style="padding: 8px;"><span class="lang-fr-only">Client</span><span class="lang-ar-only">العميل</span></th>
+            <th style="padding: 8px;"><span class="lang-fr-only">Véhicule</span><span class="lang-ar-only">المركبة</span></th>
+            <th style="padding: 8px;"><span class="lang-fr-only">Paiement</span><span class="lang-ar-only">الدفع</span></th>
+            <th style="padding: 8px;"><span class="lang-fr-only">Prix Total</span><span class="lang-ar-only">السعر الإجمالي</span></th>
+            <th style="padding: 8px;"></th>
+          </tr>
+        </thead>
+        <tbody id="v-history-table"></tbody>
+      </table>
+    </div>
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-vehicle-history')"><span class="lang-fr-only">Fermer</span><span class="lang-ar-only">إغلاق</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PAIEMENTS (TRANCHES) -->
+<div class="modal-overlay" id="modal-vehicle-payments">
+  <div class="modal" style="width:600px; max-height:85vh; display:flex; flex-direction:column; z-index: 100;">
+    <div class="modal-title">💳 <span class="lang-fr-only">Suivi des Paiements</span><span class="lang-ar-only">تتبع الدفعات</span></div>
+    
+    <input type="hidden" id="vpay-sale-id">
+    
+    <div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px" id="vpay-info">
+      <!-- Sale info injected here -->
+    </div>
+
+    <!-- NOUVEAU PAIEMENT -->
+    <div class="form-grid" style="grid-template-columns: 1fr auto; align-items: end; background: var(--bg2); padding: 12px; border-radius: 8px; margin-bottom: 14px; border: 1px solid var(--border);">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label><span class="lang-fr-only">Montant payé (DT)</span><span class="lang-ar-only">المبلغ المدفوع (DT)</span></label>
+        <input type="number" id="vpay-amount" min="0.01" step="0.01" placeholder="0.00">
+      </div>
+      <div>
+        <button class="btn btn-primary" onclick="addVehiclePayment()">➕ <span class="lang-fr-only">Ajouter paiement</span><span class="lang-ar-only">إضافة دفعة</span></button>
+      </div>
+    </div>
+
+    <!-- HISTORIQUE DES PAIEMENTS -->
+    <div style="flex:1; overflow-y:auto">
+      <table style="width:100%; border-collapse: collapse;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border); text-align: left;">
+            <th style="padding: 8px;"><span class="lang-fr-only">Date</span><span class="lang-ar-only">التاريخ</span></th>
+            <th style="padding: 8px;"><span class="lang-fr-only">Montant</span><span class="lang-ar-only">المبلغ</span></th>
+          </tr>
+        </thead>
+        <tbody id="vpay-table"></tbody>
+      </table>
+    </div>
+
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-vehicle-payments')"><span class="lang-fr-only">Fermer</span><span class="lang-ar-only">إغلاق</span></button>
+    </div>
+  </div>
+</div>

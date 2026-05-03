@@ -1,0 +1,42 @@
+<div class="page" id="page-vehicules">
+  <div class="search-bar">
+    <select id="filter-veh-type" onchange="renderVehicules()" style="width:140px">
+      <option value=""><span class="lang-fr-only">Tous types</span><span class="lang-ar-only">كل الأنواع</span></option>
+      <option value="moto">🏍️ Moto</option>
+      <option value="velo">🚲 Vélo</option>
+    </select>
+    <select id="filter-veh-statut" onchange="renderVehicules()" style="width:150px">
+      <option value=""><span class="lang-fr-only">Tous statuts</span><span class="lang-ar-only">كل الحالات</span></option>
+      <option value="disponible"><span class="lang-fr-only">Disponible</span><span class="lang-ar-only">متاح</span></option>
+      <option value="réservé"><span class="lang-fr-only">Réservé</span><span class="lang-ar-only">محجوز</span></option>
+      <option value="vendu"><span class="lang-fr-only">Vendu</span><span class="lang-ar-only">مباع</span></option>
+    </select>
+    <input class="search-input" type="text" id="search-veh" placeholder="🔍 Marque, modèle..." oninput="renderVehicules()" style="flex:1">
+    <button class="btn btn-ghost" onclick="openVehicleSalesHistory()"><span class="lang-fr-only">📜 Ventes</span><span class="lang-ar-only">📜 المبيعات</span></button>
+    <button class="btn btn-primary" onclick="openAddVehicle()"><span class="lang-fr-only">+ Ajouter véhicule</span><span class="lang-ar-only">+ إضافة مركبة</span></button>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px" id="veh-stats-bar">
+    <div class="stat-card green"><div class="stat-label"><span class="lang-fr-only">Disponibles</span><span class="lang-ar-only">متوفر</span></div><div class="stat-num" id="veh-stat-dispo">0</div></div>
+    <div class="stat-card orange"><div class="stat-label"><span class="lang-fr-only">Réservés</span><span class="lang-ar-only">محجوز</span></div><div class="stat-num" id="veh-stat-res">0</div></div>
+    <div class="stat-card blue"><div class="stat-label"><span class="lang-fr-only">Vendus</span><span class="lang-ar-only">مباع</span></div><div class="stat-num" id="veh-stat-sold">0</div></div>
+    <div class="stat-card green"><div class="stat-label"><span class="lang-fr-only">CA Véhicules</span><span class="lang-ar-only">إيرادات المركبات</span></div><div class="stat-num" style="font-size:16px" id="veh-stat-ca">0 DT</div></div>
+  </div>
+
+  <div class="card">
+    <table><thead><tr>
+      <th></th>
+      <th><span class="lang-fr-only">Type</span><span class="lang-ar-only">النوع</span></th>
+      <th><span class="lang-fr-only">Marque / Modèle</span><span class="lang-ar-only">الماركة / الموديل</span></th>
+      <th><span class="lang-fr-only">Année</span><span class="lang-ar-only">السنة</span></th>
+      <th><span class="lang-fr-only">Couleur</span><span class="lang-ar-only">اللون</span></th>
+      <th><span class="lang-fr-only">Cylindrée</span><span class="lang-ar-only">المحرك</span></th>
+      <th><span class="lang-fr-only">P.Achat</span><span class="lang-ar-only">س.الشراء</span></th>
+      <th><span class="lang-fr-only">P.Vente</span><span class="lang-ar-only">س.البيع</span></th>
+      <th><span class="lang-fr-only">Statut</span><span class="lang-ar-only">الحالة</span></th>
+      <th><span class="lang-fr-only">Actions</span><span class="lang-ar-only">إجراءات</span></th>
+    </tr></thead>
+    <tbody id="vehicules-table"></tbody></table>
+  </div>
+</div>
