@@ -10,62 +10,6 @@ const {
 } = require('./db');
 const { generateExcel } = require('./excel');
 
-/**
- * Normalizes data objects to avoid false positive conflicts.
- * Converts Dates to ISO strings, sorts object keys, and sorts arrays by `id`.
- */
-function normalizeForComparison(data) {
-  if (!data) return null;
-  const expectedKeys = [
-    'produits', 'mouvements', 'categories', 'vehicules', 
-    'ventesVehicules', 'marques', 'factures', 'admins', 'managerPassword'
-  ];
-  
-  const plain = JSON.parse(JSON.stringify(data));
-  const result = {};
-
-  for (const key of expectedKeys.sort()) {
-    let val = plain[key];
-    
-    if (key !== 'managerPassword' && !Array.isArray(val)) {
-      val = [];
-    }
-    if (key === 'managerPassword' && val === undefined) {
-      val = null;
-    }
-
-    if (Array.isArray(val)) {
-      val = val.map(item => {
-        if (item && typeof item === 'object') {
-          const sortedItem = {};
-          for (const k of Object.keys(item).sort()) {
-            let v = item[k];
-            if (v === null || v === undefined) v = "";
-            
-            // TZ FIX: If it looks like an ISO date string, only compare the YYYY-MM-DD part.
-            // This prevents false conflicts due to 1-hour timezone shifts between local and cloud.
-            if (typeof v === 'string' && v.match(/^\d{4}-\d{2}-\d{2}T/)) {
-              v = v.substring(0, 10); // Keep only "YYYY-MM-DD"
-            }
-
-            if (v === "") continue;
-            sortedItem[k] = v;
-          }
-          return sortedItem;
-        }
-        return item;
-      });
-      val.sort((a, b) => {
-        const idA = (a && a.id !== undefined) ? String(a.id) : (typeof a === 'string' ? a : JSON.stringify(a));
-        const idB = (b && b.id !== undefined) ? String(b.id) : (typeof b === 'string' ? b : JSON.stringify(b));
-        return idA.localeCompare(idB);
-      });
-    }
-    result[key] = val;
-  }
-  return JSON.stringify(result);
-}
-
 function registerHandlers(mainWindow) {
   
   // Data Loading
@@ -88,10 +32,22 @@ function registerHandlers(mainWindow) {
         }
       }
 
-      // 2. Fetch cloud data
+      // FAST PATH: if local exists, load immediately and sync cloud in background.
+      // This avoids long startup delays caused by cloud connection/query latency.
+      const neonUri = getNeonUri();
+      if (localExists) {
+        if (neonUri) {
+          syncToNeon(neonUri, localData).catch(e => {
+            console.error('Background sync error:', e.message);
+            sendSyncStatus('error');
+          });
+        }
+        return { success: true, data: localData, path: DATA_FILE };
+      }
+
+      // 2. Fetch cloud data (only when no local data exists)
       let cloudData = null;
       let cloudExists = false;
-      const neonUri = getNeonUri();
       if (neonUri) {
         const client = new Client({ connectionString: neonUri, connectionTimeoutMillis: 5000 });
         try {
@@ -164,42 +120,13 @@ function registerHandlers(mainWindow) {
         }
       }
 
-      // 3. Logic based on existence
-      // A: Both exist -> Check for real differences
-      if (localExists && cloudExists) {
-        const normLocal = normalizeForComparison(localData);
-        const normCloud = normalizeForComparison(cloudData);
-        if (normLocal === normCloud) {
-          console.log("No data differences detected between local and cloud.");
-          return { success: true, data: localData, path: DATA_FILE };
-        } else {
-          console.log("Data conflict detected! Opening modal.");
-          // Debugging help: find the first difference
-          for (let i = 0; i < Math.min(normLocal.length, normCloud.length); i++) {
-            if (normLocal[i] !== normCloud[i]) {
-              console.log(`First difference at index ${i}: Local='${normLocal.substring(i, i+50)}', Cloud='${normCloud.substring(i, i+50)}'`);
-              break;
-            }
-          }
-        }
-        return { success: true, path: 'CONFLICT', localData, cloudData };
-      }
-
-      // B: Cloud only -> Use cloud, save local
+      // 3. Cloud only -> Use cloud, save local
       if (cloudExists && !localExists) {
         fs.writeFileSync(DATA_FILE, JSON.stringify(cloudData, null, 2), 'utf-8');
         return { success: true, data: cloudData, path: 'DB' };
       }
 
-      // C: Local only -> Use local, sync to cloud in background
-      if (localExists && !cloudExists) {
-        if (neonUri) {
-          syncToNeon(neonUri, localData).catch(e => console.error('Initial background sync error:', e.message));
-        }
-        return { success: true, data: localData, path: DATA_FILE };
-      }
-
-      // D: None exist -> Empty start
+      // 4. None exist -> Empty start
       return { success: true, data: null, path: DATA_FILE };
     } catch (err) { return { success: false, error: err.message }; }
   });
