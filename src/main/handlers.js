@@ -118,10 +118,22 @@ function registerHandlers(mainWindow) {
         }
       }
 
-      // 2. Fetch cloud data
+      // FAST PATH: if local exists, load immediately and sync cloud in background.
+      // This avoids long startup delays caused by cloud connection/query latency.
+      const neonUri = getNeonUri();
+      if (localExists) {
+        if (neonUri) {
+          syncToNeon(neonUri, localData).catch(e => {
+            console.error('Background sync error:', e.message);
+            sendSyncStatus('error');
+          });
+        }
+        return { success: true, data: localData, path: DATA_FILE };
+      }
+
+      // 2. Fetch cloud data (only when no local data exists)
       let cloudData = null;
       let cloudExists = false;
-      const neonUri = getNeonUri();
       if (neonUri) {
         const client = new Client({ connectionString: neonUri, connectionTimeoutMillis: 5000 });
         try {
@@ -194,6 +206,7 @@ function registerHandlers(mainWindow) {
         }
       }
 
+      // 3. Cloud only -> Use cloud, save local
       // 3. Logic based on existence
       // A: Both exist -> Check for real differences
       if (localExists && cloudExists) {
@@ -237,15 +250,7 @@ function registerHandlers(mainWindow) {
         return { success: true, data: cloudData, path: 'DB' };
       }
 
-      // C: Local only -> Use local, sync to cloud in background
-      if (localExists && !cloudExists) {
-        if (neonUri) {
-          syncToNeon(neonUri, localData).catch(e => console.error('Initial background sync error:', e.message));
-        }
-        return { success: true, data: localData, path: DATA_FILE };
-      }
-
-      // D: None exist -> Empty start
+      // 4. None exist -> Empty start
       return { success: true, data: null, path: DATA_FILE };
     } catch (err) { return { success: false, error: err.message }; }
   });
