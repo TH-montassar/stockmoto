@@ -43,6 +43,12 @@ function normalizeForComparison(data) {
           for (const k of Object.keys(item).sort()) {
             let v = item[k];
             if (v === null || v === undefined) v = "";
+
+            // ID NORMALIZATION: compare ids as strings to avoid false conflicts
+            // between local string ids and cloud numeric ids.
+            if (/(^id$|Id$|_id$)/.test(k) && v !== "") {
+              v = String(v);
+            }
             
             // TZ FIX: If it looks like an ISO date string, only compare the YYYY-MM-DD part.
             // This prevents false conflicts due to 1-hour timezone shifts between local and cloud.
