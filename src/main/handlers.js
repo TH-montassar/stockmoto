@@ -1,6 +1,7 @@
 const { ipcMain, dialog, shell } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { Client } = require('pg');
 const { 
   DATA_DIR, DATA_FILE, ENV_FILE, IMAGES_DIR, BACKUP_DIR, ensureDirs 
@@ -9,6 +10,91 @@ const {
   getNeonUri, getCurrentNeonConfig, initDb, syncToNeon, sendSyncStatus, getSyncStatus, checkConnection 
 } = require('./db');
 const { generateExcel } = require('./excel');
+const CONFLICT_STATE_FILE = path.join(DATA_DIR, 'conflict_state.json');
+
+/**
+ * Normalizes data objects to avoid false positive conflicts.
+ * Converts Dates to ISO strings, sorts object keys, and sorts arrays by `id`.
+ */
+function normalizeForComparison(data) {
+  if (!data) return null;
+  const expectedKeys = [
+    'produits', 'mouvements', 'categories', 'vehicules', 
+    'ventesVehicules', 'marques', 'factures', 'admins', 'managerPassword'
+  ];
+  
+  const plain = JSON.parse(JSON.stringify(data));
+  const result = {};
+
+  for (const key of expectedKeys.sort()) {
+    let val = plain[key];
+    
+    if (key !== 'managerPassword' && !Array.isArray(val)) {
+      val = [];
+    }
+    if (key === 'managerPassword' && val === undefined) {
+      val = null;
+    }
+
+    if (Array.isArray(val)) {
+      val = val.map(item => {
+        if (item && typeof item === 'object') {
+          const sortedItem = {};
+          for (const k of Object.keys(item).sort()) {
+            let v = item[k];
+            if (v === null || v === undefined) v = "";
+
+            // ID NORMALIZATION: compare ids as strings to avoid false conflicts
+            // between local string ids and cloud numeric ids.
+            if (/(^id$|Id$|_id$)/.test(k) && v !== "") {
+              v = String(v);
+            }
+            
+            // TZ FIX: If it looks like an ISO date string, only compare the YYYY-MM-DD part.
+            // This prevents false conflicts due to 1-hour timezone shifts between local and cloud.
+            if (typeof v === 'string' && v.match(/^\d{4}-\d{2}-\d{2}T/)) {
+              v = v.substring(0, 10); // Keep only "YYYY-MM-DD"
+            }
+
+            if (v === "") continue;
+            sortedItem[k] = v;
+          }
+          return sortedItem;
+        }
+        return item;
+      });
+      val.sort((a, b) => {
+        const idA = (a && a.id !== undefined) ? String(a.id) : (typeof a === 'string' ? a : JSON.stringify(a));
+        const idB = (b && b.id !== undefined) ? String(b.id) : (typeof b === 'string' ? b : JSON.stringify(b));
+        return idA.localeCompare(idB);
+      });
+    }
+    result[key] = val;
+  }
+  return JSON.stringify(result);
+}
+
+function hashNormalized(data) {
+  return crypto.createHash('sha256').update(normalizeForComparison(data)).digest('hex');
+}
+
+function readConflictState() {
+  try {
+    if (!fs.existsSync(CONFLICT_STATE_FILE)) return null;
+    return JSON.parse(fs.readFileSync(CONFLICT_STATE_FILE, 'utf-8'));
+  } catch (_) {
+    return null;
+  }
+}
+
+function writeConflictState(state) {
+  try {
+    ensureDirs();
+    fs.writeFileSync(CONFLICT_STATE_FILE, JSON.stringify(state, null, 2), 'utf-8');
+  } catch (e) {
+    console.error('Error writing conflict state:', e.message);
+  }
+}
 
 function registerHandlers(mainWindow) {
   
@@ -121,6 +207,44 @@ function registerHandlers(mainWindow) {
       }
 
       // 3. Cloud only -> Use cloud, save local
+      // 3. Logic based on existence
+      // A: Both exist -> Check for real differences
+      if (localExists && cloudExists) {
+        const normLocal = normalizeForComparison(localData);
+        const normCloud = normalizeForComparison(cloudData);
+        if (normLocal === normCloud) {
+          console.log("No data differences detected between local and cloud.");
+          return { success: true, data: localData, path: DATA_FILE };
+        } else {
+          const conflictState = readConflictState();
+          const localHash = hashNormalized(localData);
+
+          // If user previously chose local for this same local snapshot, auto-apply local again.
+          if (conflictState?.lastResolution === 'local' && conflictState?.localHash === localHash) {
+            console.log("Re-applying previously accepted local data and syncing cloud.");
+            if (neonUri) {
+              try {
+                await syncToNeon(neonUri, localData);
+              } catch (e) {
+                console.error('Auto-sync after previous local choice failed:', e.message);
+              }
+            }
+            return { success: true, data: localData, path: DATA_FILE };
+          }
+
+          console.log("Data conflict detected! Opening modal.");
+          // Debugging help: find the first difference
+          for (let i = 0; i < Math.min(normLocal.length, normCloud.length); i++) {
+            if (normLocal[i] !== normCloud[i]) {
+              console.log(`First difference at index ${i}: Local='${normLocal.substring(i, i+50)}', Cloud='${normCloud.substring(i, i+50)}'`);
+              break;
+            }
+          }
+        }
+        return { success: true, path: 'CONFLICT', localData, cloudData };
+      }
+
+      // B: Cloud only -> Use cloud, save local
       if (cloudExists && !localExists) {
         fs.writeFileSync(DATA_FILE, JSON.stringify(cloudData, null, 2), 'utf-8');
         return { success: true, data: cloudData, path: 'DB' };
@@ -142,6 +266,13 @@ function registerHandlers(mainWindow) {
       if (neonUri) {
         if (options.waitForCloud) {
           await syncToNeon(neonUri, jsonData);
+          if (options.conflictChoice) {
+            writeConflictState({
+              lastResolution: options.conflictChoice,
+              localHash: hashNormalized(jsonData),
+              resolvedAt: new Date().toISOString()
+            });
+          }
         } else {
           syncToNeon(neonUri, jsonData).catch(e => {
             console.error('Neon sync error:', e.message);
