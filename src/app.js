@@ -551,7 +551,7 @@ async function resolveDataConflict(choice) {
   document.getElementById('save-label').innerHTML = `<span class="lang-fr-only">Sync en cours...</span><span class="lang-ar-only">جاري المزامنة...</span>`;
 
   try {
-    const res = await window.electronAPI.saveData(data, { waitForCloud: overwriteCloud });
+    const res = await window.electronAPI.saveData(data, { waitForCloud: overwriteCloud, conflictChoice: choice });
     if (res.success) {
       if (res.warning) {
         showToast('⚠️ ' + T('Cloud désactivé: sauvegarde locale uniquement', 'السحابة معطلة: تم الحفظ محليا فقط'), 'warning');
