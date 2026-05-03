@@ -2,10 +2,11 @@
   "name": "stockmoto",
   "version": "1.0.24",
   "description": "Gestion de stock pièces moto & vélo — إدارة قطع الغيار",
+  "author": "StockMoto",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "prebuild": "node scripts/bump-version.js",
+    "prebuild": "node scripts/bump-version.js && node scripts/clean-dist.js",
     "build": "electron-builder --win --x64",
     "build-linux": "electron-builder --linux"
   },
