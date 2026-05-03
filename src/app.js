@@ -118,6 +118,10 @@ window.addEventListener('click', (e) => {
 let isManager = false;
 let currentUserDisplayName = '';
 
+// Temporary switch: keep authentication code but bypass login screen.
+// Set to false to reactivate normal login flow.
+const LOGIN_PAUSED = true;
+
 async function hashPassword(str) {
   const msgUint8 = new TextEncoder().encode(str);
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
@@ -575,6 +579,13 @@ async function resolveDataConflict(choice) {
 
 function checkSession() {
   if (conflictData) return; // Don't show login if resolution needed
+
+  if (LOGIN_PAUSED) {
+    isManager = true;
+    currentUserDisplayName = 'MASTER';
+    unlockApp();
+    return;
+  }
 
   const sessionRaw = localStorage.getItem('sm_session');
   if (sessionRaw) {
